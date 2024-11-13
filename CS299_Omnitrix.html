@@ -1,0 +1,511 @@
+<!--ชิตดนัย แสงน้อย 6509681117-->
+<!--ปุณณเทพ เจริญสิทธิ์ 6509611874-->
+<!--ชญานนท์ กล่อมใจขาว 6509611619-->
+<!--ธนพล มูลชาลี 6509681125-->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>CS299 Example</title>
+  <style type="text/css">
+  html, body { height: 100%; margin: 0; }
+  #c { width: 100%; height: 100%; display: block; }
+</style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+</body>
+
+<script type="module" >
+
+import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/build/three.module.js';
+import {OrbitControls} from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/controls/OrbitControls.js';
+import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/loaders/GLTFLoader.js';
+
+function main() {
+  const canvas = document.querySelector('#c');
+  const renderer = new THREE.WebGLRenderer({canvas});
+
+  const fov = 45;
+  const aspect = 2;  // the canvas default
+  const near = 0.1;
+  const far = 100;
+  const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+  camera.position.set(1, 1, 1);
+  var listener = new THREE.AudioListener();
+
+  const controls = new OrbitControls(camera, canvas);
+  controls.target.set(0, 0, 0);
+  controls.update();
+
+  const scene = new THREE.Scene();
+
+  // Load CubeTexture
+  {
+    const loader = new THREE.CubeTextureLoader();
+    const texture = loader.load([
+      'skybox/right.png',
+      'skybox/left.png',
+      'skybox/top.png',
+      'skybox/bottom.png',
+      'skybox/front.png',
+      'skybox/back.png',
+    ]);
+    scene.background = texture;
+  }
+
+  function frameArea90(sizeToFitOnScreen, boxSize, boxCenter, camera) {
+  const halfSizeToFitOnScreen = sizeToFitOnScreen * 0.5;
+  const halfFovY = THREE.MathUtils.degToRad(camera.fov * 0.5);
+  const distance = halfSizeToFitOnScreen / Math.tan(halfFovY);
+
+  // Set the camera position to look at the object from a 90-degree angle
+  const angle = THREE.MathUtils.degToRad(-270);
+  const offsetX = Math.cos(angle) * distance;
+  const offsetY = Math.sin(angle) * distance;
+
+  camera.position.set(boxCenter.x + offsetX, boxCenter.y + offsetY, boxCenter.z);
+
+  // Set the camera to look at the object
+  const lookAtPosition = new THREE.Vector3(boxCenter.x, boxCenter.y, boxCenter.z);
+  camera.lookAt(lookAtPosition);
+
+  // Update near, far, and updateProjectionMatrix
+  camera.near = boxSize / 100;
+  camera.far = boxSize * 100;
+  camera.updateProjectionMatrix();
+}
+  {
+    const skyColor = 0xB1E1FF;  // light blue
+    const groundColor = 0xB97A20;  // brownish orange
+    const intensity = 1;
+    const light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
+    scene.add(light);
+  }
+
+  {
+    const color = 0xFFFFFF;
+    const intensity = 1;
+    const light = new THREE.DirectionalLight(color, intensity);
+    light.position.set(5, 10, 2);
+    scene.add(light);
+    scene.add(light.target);
+  }
+
+  function frameArea(sizeToFitOnScreen, boxSize, boxCenter, camera) {
+    const halfSizeToFitOnScreen = sizeToFitOnScreen * 0.5;
+    const halfFovY = THREE.MathUtils.degToRad(camera.fov * 0.5);
+    const distance = halfSizeToFitOnScreen / Math.tan(halfFovY);
+
+    // ตำแหน่งกล้องที่มองลงไปยังวัตถุ 45 องศา
+    const angle = THREE.MathUtils.degToRad(135); // 45 องศา
+    const offsetX = Math.cos(angle) * distance;
+    const offsetY = Math.sin(angle) * distance;
+    
+    camera.position.set(boxCenter.x + offsetX, boxCenter.y + offsetY, boxCenter.z);
+
+    // ตำแหน่งกล้องที่มองไปยังวัตถุ
+    const lookAtPosition = new THREE.Vector3(boxCenter.x, boxCenter.y, boxCenter.z);
+
+    // เปลี่ยนทิศทางการมองของกล้อง
+    camera.lookAt(lookAtPosition);
+
+    // คำนวณค่า near, far, และ updateProjectionMatrix
+    camera.near = boxSize / 100;
+    camera.far = boxSize * 100;
+    camera.updateProjectionMatrix();
+}
+
+var audioPressed = true;
+function initAudio() {
+  var listener = new THREE.AudioListener();
+  camera.add(listener);
+  var audioLoader = new THREE.AudioLoader();
+
+  audioLoader.load('sound/BGM.mp3', function (buffer) {
+    var sound = new THREE.Audio(listener);
+    sound.setBuffer(buffer);
+    sound.setLoop(true);
+    sound.setVolume(0.5);
+    sound.onEnded = function () {
+      this.play();
+    };
+    if(audioPressed){
+    sound.play();
+    audioPressed = false;
+    }
+  });
+}
+function makeRed(){
+  redFlash.visible = true;
+      setTimeout(() => {
+      redFlash.visible = false;
+    }, 1000);
+    if(omniTimeOut){
+    omniTimeOut.play();
+  }
+}
+
+  {
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.load('model/Omnitrix.gltf', (gltf) => {
+      const root = gltf.scene;
+      scene.add(root);
+
+      const coreObject = findObjectByName(root, 'Core');
+      const buttonObject = findObjectByName(root, 'Button');
+      const subBottonObject = findObjectByName(root, 'Object');
+      const coverObject = findObjectByName(root, 'Cover');
+      const lineObject = findObjectByName(root, 'Line');
+      const iconObject = findObjectByName(root, 'Icon');
+      const greeObject = findObjectByName(root, 'standby');
+      const redObject = findObjectByName(root, 'cooldown');
+      const whiteObject = findObjectByName(root, 'using');
+      const greenFlashGeometry = new THREE.PlaneGeometry(10, 10, 10);
+      const redFlashGeometry = new THREE.PlaneGeometry(10, 10, 10);
+      const greenFlashMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
+      const redFlashMaterial = new THREE.MeshBasicMaterial({ color: 0xFF0000, side: THREE.DoubleSide });
+      const greenFlash = new THREE.Mesh(greenFlashGeometry, greenFlashMaterial);
+      const redFlash = new THREE.Mesh(redFlashGeometry, redFlashMaterial);
+      greenFlash.visible = false;
+      redFlash.visible = false; // Initially, make it invisible
+      greenFlash.rotation.x = Math.PI / 2;
+      redFlash.rotation.x = Math.PI / 2;
+      greenFlash.position.y += 4;
+      redFlash.position.y += 4;
+      scene.add(redFlash);
+      scene.add(greenFlash);
+
+      let omniChooseD;
+      let omniChooseA;
+    if (coreObject && buttonObject) {
+      console.log('Found Core:', coreObject);
+      console.log('Found Button:', buttonObject);
+      console.log('Found subBotton:', subBottonObject);
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+      const audioLoader = new THREE.AudioLoader();
+
+    audioLoader.load('sound/omniChooseD.mp3', function (buffer) {
+    omniChooseD = new THREE.Audio(listener);
+    omniChooseD.setBuffer(buffer);
+      });                               
+    audioLoader.load('sound/omniChooseA.mp3', function (buffer) {
+    omniChooseA = new THREE.Audio(listener);
+    omniChooseA.setBuffer(buffer);
+      });
+
+function swapUpDown(object, remainingSwaps) {
+  if (remainingSwaps <= 0) {
+    redFlash.visible = true;
+    setTimeout(()=>{
+      redFlash.visible = false;
+    }, 1500);
+    return;
+  }
+
+  // Move the object up
+  setTimeout(() => {
+    status(0);
+    
+    // Call the function recursively for the next swap
+    swapUpDown(object, remainingSwaps - 1);
+  }, 1000);
+
+  // Move the object down after a delay
+  setTimeout(() => {
+    status(1);
+  }, 1000 * (remainingSwaps - 1)); // Adjust the delay for moving down
+}
+
+    const iniCov = coverObject.rotation.z;
+    const iniIcon = iconObject.rotation.x;
+    var timeOut = false;
+    var stat = 10;
+
+    function status(num){
+      switch(num){
+        case 0: 
+        greeObject.visible = false;
+        redObject.visible = true;
+        whiteObject.visible = false;
+        stat = 0;
+        break;
+        case 1:
+        greeObject.visible = false;
+        redObject.visible = false;
+        whiteObject.visible = true;
+        stat = 1;
+        break;
+        default:
+        greeObject.visible = true;
+        redObject.visible = false;
+        whiteObject.visible = false;
+        coverObject.rotation.z = iniCov;
+        iconObject.rotation.x = iniIcon;
+        count = 1;
+        stat = 10;
+      }
+    }
+
+    let count = 1;
+    function selection(num){
+      switch(num){
+        case 1:
+        iconObject.rotation.x = 4.0;
+          break;
+          case 2:
+        iconObject.rotation.x = 3.48;
+          break;
+          case 3:
+        iconObject.rotation.x = 2.93;
+          break;
+          case 4:
+        iconObject.rotation.x = 2.16;
+          break;
+          case 5:
+        iconObject.rotation.x = 1.61;
+          break;
+          case 6:
+        iconObject.rotation.x = 0.978;
+          break;
+          case 7:
+        iconObject.rotation.x = 0.428;
+          break;
+          case 8:
+        iconObject.rotation.x = 6;
+          break;
+          case 9:
+        iconObject.rotation.x = 5.452;
+          break;
+          default:
+          iconObject.rotation.x = 4.72;
+      }
+    }
+
+    var Dkey = false;
+    window.addEventListener('keydown', (event) =>{
+    if(event.key === ' '){
+      console.log('The space key was pressed!');
+      frameArea90(boxSize, boxSize, boxCenter, camera);
+    }
+    if(animateLocateCore){
+      if (event.key === 'a') {
+        console.log('The A key was pressed!');
+        if(!Dkey){
+          count++;
+        }
+        Dkey = true;
+        coverObject.rotation.z += 45;
+        if(count==10){
+          count=0;
+        }
+        selection(count++);
+        if(omniChooseA){
+          omniChooseA.play();
+        }
+      }else if(event.key === 'd'){
+        console.log('The D key was pressed!');
+        if(Dkey){
+          count--;
+        }
+        Dkey = false;
+        coverObject.rotation.z -= 45;
+        if(count==0){
+          count=9;
+        }
+        selection(count--);
+        if(omniChooseD){
+          omniChooseD.play();
+        }
+      }
+    }
+    else if(!animateLocateCore){
+      if(event.key === 'x' && stat == 1){
+        console.log('The X key was pressed!');
+        if(omniWarn){
+          omniWarn.play();
+        }
+        swapUpDown(redObject, 3);
+        status(0);
+          makeRed();
+          if(omniTimeOut){
+          omniTimeOut.play();
+        }
+      }
+      else if(event.key === 'r' && stat == 0){
+        console.log('The R key was pressed!');
+        status(10);
+        
+        if(omniRe){
+          omniRe.play();
+        }
+      }
+    }
+  });
+
+      let animateLocateCore = false;
+      let omniPushSound;
+      let omniSelect;
+      let omniTrans;
+      let omniWarn;
+      let omniTimeOut;
+      let omniRe;
+
+audioLoader.load('sound/omniPush.mp3', function (buffer) {
+  omniPushSound = new THREE.Audio(listener);
+  omniPushSound.setBuffer(buffer);
+});
+
+audioLoader.load('sound/omniRecharged.mp3', function (buffer) {
+  omniRe = new THREE.Audio(listener);
+  omniRe.setBuffer(buffer);
+});
+
+audioLoader.load('sound/omniWarn.mp3', function (buffer) {
+  omniWarn = new THREE.Audio(listener);
+  omniWarn.setBuffer(buffer);
+});
+
+audioLoader.load('sound/omniTimeOut.mp3', function (buffer) {
+  omniTimeOut = new THREE.Audio(listener);
+  omniTimeOut.setBuffer(buffer);
+});
+
+audioLoader.load('sound/omniTransform.mp3', function (buffer) {
+  omniTrans = new THREE.Audio(listener);
+  omniTrans.setBuffer(buffer);
+});
+
+audioLoader.load('sound/omniSelect.mp3', function (buffer) {
+  omniSelect = new THREE.Audio(listener);
+  omniSelect.setBuffer(buffer);
+});
+    window.addEventListener('click', (event) => {
+      // Calculate normalized mouse coordinates
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      // Set up raycaster
+      raycaster.setFromCamera(mouse, camera);
+
+      // Check for intersections
+      const intersects1 = raycaster.intersectObjects([subBottonObject], true);
+      const intersects2 = raycaster.intersectObjects([coreObject], true);
+      if (intersects1.length > 0) {
+
+        if(animateLocateCore == false && stat == 10){
+          subBottonObject.position.x += 0.05;
+        buttonObject.position.x += 0.05;
+        coreObject.position.z -= 0.3;
+          animateLocateCore = true;
+          if (omniPushSound) {
+          omniPushSound.play();
+          }
+          if(omniSelect){
+          omniSelect.play();
+          omniSelect.setLoop(true);
+          }
+          stat = 5;
+        }
+        console.log('Button pressed!');
+      }
+      if (intersects2.length > 0) {
+
+if(animateLocateCore == true &&stat==5 ){
+      if(omniSelect){
+        omniSelect.setLoop(false);
+      }
+      if(omniTrans){
+        omniTrans.play();
+      }
+      
+      subBottonObject.position.x -= 0.05;
+      buttonObject.position.x -= 0.05;
+      coreObject.position.z += 0.3;
+      status(1);
+      animateLocateCore = false
+      greenFlash.visible = true;
+      setTimeout(() => {
+      greenFlash.visible = false;
+    }, 1000);
+}
+
+
+console.log('Core pressed!');
+}
+    });
+  }
+   else {
+    console.error('Objects not found');
+  }
+  canvas.addEventListener('click', initAudio);
+
+
+      // compute the box that contains all the stuff
+      // from root and below
+      const box = new THREE.Box3().setFromObject(root);
+      const boxSize = box.getSize(new THREE.Vector3()).length();
+      const boxCenter = box.getCenter(new THREE.Vector3());
+      
+      // set the camera to frame the box
+      frameArea(boxSize, boxSize, boxCenter, camera);
+
+      // update the Trackball controls to handle the new size
+      controls.maxDistance = boxSize * 10;
+      controls.target.copy(boxCenter);
+      controls.update();
+    });
+  }
+
+  function findObjectByName(parent, name) {
+  if (parent.name === name) {
+    return parent;
+  }
+
+  for (const child of parent.children) {
+    const result = findObjectByName(child, name);
+    if (result) {
+      return result;
+    }
+  }
+
+  return null;
+}
+
+  function resizeRendererToDisplaySize(renderer) {
+    const canvas = renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const needResize = canvas.width !== width || canvas.height !== height;
+    if (needResize) {
+      renderer.setSize(width, height, false);
+    }
+    return needResize;
+  }
+
+  function render(time) {
+    time *= 0.001;  // convert to seconds
+
+    if (resizeRendererToDisplaySize(renderer)) {
+      const canvas = renderer.domElement;
+      camera.aspect = canvas.clientWidth / canvas.clientHeight;
+      camera.updateProjectionMatrix();
+    }
+
+    renderer.render(scene, camera);
+
+    requestAnimationFrame(render);
+  }
+
+  requestAnimationFrame(render);
+}
+
+main();
+
+
+
+</script>
+</html>
+
